@@ -1,23 +1,19 @@
-# Foundation verification
+# Verification
 
-Verified in GitHub Actions on Ubuntu, Node 22, headless Chromium:
-- Strict TypeScript check
-- ESLint
-- 5 unit tests covering prerequisites, repeat rewards, timeline round trips, save validation and adapters
-- Production build
-- 2 browser smoke tests covering WebGL startup, inventory, save/reload, future-era start and corrupt-save recovery
+The foundation passed CI with five unit tests and two Chromium smoke tests.
+The village expansion adds tests for linked quest progression, migration, motion, and a browser walkthrough.
 
-The initial older toolchain reported higher-severity advisories. Vite, Vitest and Playwright were
-updated using the npm registry and verified again. The resolved package manifest and lockfile were then committed.
-At that verification, npm audit reported two low-severity advisories and no moderate/high/critical advisories.
-This is not a guarantee about future advisories.
+## Expansion acceptance
+- Typecheck, lint, production build, dependency audit
+- Prerequisites, no duplicate rewards, work/gift alternatives, future tree consequence
+- Save v1 migration and v2 round trip
+- Kinematic acceleration and diagonal speed bounds
+- Browser startup, inventory, save restore, corrupt-save recovery
+- Browser jump, library door, dialogue, gift repair, planting, clocktower, future inscription and persisted keepsake
 
-Not verified:
-- Full physical walkthrough and camera occlusion in every location
-- Real touch/gamepad hardware
-- iOS Safari / Android browsers
-- Frame-time, thermal and memory budgets on mobile
-- Production-host deployment
+CI status on the current PR is the source of truth for these checks.
 
-The flat-scene movement controller and procedural art are intentional foundations.
-No native mobile export, AI quest service or multiplayer is claimed.
+Still needs physical playtesting: camera occlusion at every angle, touch/gamepad hardware,
+iOS Safari/Android, frame time/thermal/memory budgets, complex collision surfaces.
+Art uses procedural geometry and procedural limb motion, not final imported character animation.
+No native mobile export, AI service, multiplayer or deployment is claimed.

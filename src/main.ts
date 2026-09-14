@@ -108,7 +108,7 @@ function boot() {
   if(started)ui.show('Quest journal',quests(state).map(q=>(q.complete?'✓ ':'○ ')+q.title+'\n'+q.detail+'\nReward: '+q.reward).join('\n\n'));
  };
  ui.get('interact').onclick=interact;
- ui.get('inventory').onclick=()=>{if(started)ui.show('What you carry',state.inventory.join('\n\n')+'\n\nGold: '+state.coins+'\nRepair supplies in this era: '+state.timelines[state.era].collected.length+'/3');};
+ ui.get('inventory').onclick=()=>{if(started)ui.show('What you carry',state.inventory.join('\n\n')+'\n\nGold: '+state.coins+'\nRepair supplies in this era: '+(state.timelines[state.era].helped?0:state.timelines[state.era].collected.length)+'/3');};
  ui.get('chronicle').onclick=()=>{if(started)ui.show('Your chronicle',state.chronicle.map(e=>e.era+' — '+e.text).join('\n\n'));};
  ui.get('save').onclick=()=>persist(true);ui.get('load').onclick=restore;
  const resize=()=>engine.resize();
@@ -134,7 +134,7 @@ function boot() {
   const target=world.nearest(traveler.mesh.position);
   ui.get('prompt').textContent=started&&target&&target.distance<2.2?'E · '+target.label:'WASD · Walk   Shift · Run   Space · Jump   E · Interact   R · Camera';
   scene.render();ui.canvas.dataset.ready='true';
-  if(import.meta.env.DEV){ui.canvas.dataset.position=[traveler.mesh.position.x,traveler.mesh.position.y,traveler.mesh.position.z].join(',');ui.canvas.dataset.motion=traveler.motion;ui.canvas.dataset.room=world.room;}
+  if(import.meta.env.DEV){ui.canvas.dataset.position=[traveler.mesh.position.x,traveler.mesh.position.y,traveler.mesh.position.z].join(',');ui.canvas.dataset.motion=traveler.motion;ui.canvas.dataset.room=world.room;ui.canvas.dataset.camera=[camera.alpha,camera.beta,camera.radius].join(',');}
  });
  const cleanup=(event:PageTransitionEvent)=>{
   persist();if(event.persisted)return;

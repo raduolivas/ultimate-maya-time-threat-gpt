@@ -19,14 +19,17 @@ Do not open index.html directly. The committed lockfile fixes the dependency gra
 ## First journey
 1. Choose 1200 or 2080.
 2. Walk to the library on the left, approach its front door, and press E.
-3. Approach the reading table and study the manuscript.
+3. Approach the reading table. Talk to Elian and choose to read and reflect.
 4. Leave using the glowing floor marker.
-5. Talk to the villager beside the well and offer help.
-6. Enter the tall clocktower on the right. Approach the ring and cross.
-7. Save and reload. Your quests, energy, inventory, and chronicle persist.
+5. Talk to the villager beside the well. Gather three marked supply crates, or contribute 10 gold.
+6. In 1200, plant your Moonseed at the garden patch southeast of the well.
+7. Enter the tall clocktower on the right. Approach the ring and cross to 2080.
+8. Read the garden inscription beneath the tree that grew from your seed.
+9. Save and reload. Your quests, energy, inventory, and chronicle persist.
 
 WASD/arrows move relative to the camera. Drag to orbit; wheel to zoom.
-Touch devices display movement buttons; gamepads use left stick and button A.
+Shift sprints, Space jumps, and R recenters the camera. The traveler has procedural walk/run/jump animation.
+Touch devices display movement, Run and Jump buttons. Gamepad: left stick moves, stick press sprints, A jumps, X interacts, Y recenters.
 Touch/gamepad behavior needs physical-device validation. Saves restore at the square, not at exact coordinates.
 
 ## Checks
@@ -37,7 +40,7 @@ npm run test:browser
 npm run build
 npm run preview
 ```
-CI runs type checks, lint, progression/save tests, browser smoke tests, and a production build.
+CI runs type checks, lint, progression/save/motion tests, a browser quest walkthrough, startup smoke tests, and a production build.
 A browser smoke pass does not certify art quality, complete navigation, or mobile performance.
 
 ## Source map
@@ -54,8 +57,9 @@ A browser smoke pass does not certify art quality, complete navigation, or mobil
 
 ## Scope
 Two stylized eras, a modular village, library and clocktower interiors, dialogue,
-a short authored quest, inventory, chronicle, time travel, and local saves.
-No server, live AI, MCP service, multiplayer, combat, skeletal animation, stairs, or arbitrary-year generation yet.
+branching conversations, five linked quests, supply gathering, a gold alternative, inventory, chronicle, time travel consequences, and local saves.
+Version 2 saves migrate version 1 automatically without resetting progress.
+No server, live AI, MCP service, multiplayer, combat, imported skeletal animation, stairs, or arbitrary-year generation yet.
 Models are editable procedural geometry, not final authored GLB assets.
 The spiritual themes are fictional game mechanics, not psychological assessment or historical claims.
 

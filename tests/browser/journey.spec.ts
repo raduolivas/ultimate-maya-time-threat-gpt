@@ -15,7 +15,10 @@ async function axisTo(page: Page, axis: 0 | 2, destination: number) {
       const value = await coordinate(page, axis);
       return positive ? value >= destination - .2 : value <= destination + .2;
     }, { timeout: 12000, intervals: [50] }).toBe(true);
-  } finally { await page.keyboard.up(key); }
+  } finally {
+    console.log('NAVIGATION', JSON.stringify({axis,destination,position:await page.locator('#game').getAttribute('data-position'),camera:await page.locator('#game').getAttribute('data-camera'),motion:await page.locator('#game').getAttribute('data-motion')}));
+    await page.keyboard.up(key);
+  }
   await expect(page.locator('#game')).toHaveAttribute('data-motion', 'idle');
 }
 async function act(page: Page, prompt: string) {
@@ -84,4 +87,21 @@ test('walk, jump, enter doors, follow dialogue, plant and discover a future cons
   await page.getByRole('button', { name: 'Inventory', exact: true }).click();
   await expect(page.locator('#dialog-body')).toContainText('Memory of the Moon Tree');
   expect(errors).toEqual([]);
+});
+
+test('sprint is available and movement pauses while a journal is open', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Begin in 1200 · The Lantern Age' }).click();
+  await page.keyboard.down('Shift');
+  await page.keyboard.down('w');
+  await expect(page.locator('#game')).toHaveAttribute('data-motion', 'run');
+  await page.keyboard.up('w');
+  await page.keyboard.up('Shift');
+  await expect(page.locator('#game')).toHaveAttribute('data-motion', 'idle');
+  await page.getByRole('button', { name: 'Quests', exact: true }).click();
+  const position = await page.locator('#game').getAttribute('data-position');
+  await page.keyboard.down('w');
+  await page.waitForTimeout(250);
+  await page.keyboard.up('w');
+  expect(await page.locator('#game').getAttribute('data-position')).toBe(position);
 });

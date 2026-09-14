@@ -25,7 +25,8 @@ export function decodeSave(raw: string): GameState {
       ![null, 'work', 'gift'].includes(t.repair as null | string)) throw new Error('Invalid quest data.');
   }
   if (legacy) {
-    s.version = 2; s.coins = 15; s.seedPlanted = false; s.echoRead = false; s.crossings = 0;
+    s.version = 2; s.coins = 15; s.seedPlanted = false; s.echoRead = false;
+    s.crossings = Math.max(s.era !== s.birth ? 1 : 0, s.chronicle.filter(e => e.text.startsWith('Crossed into ')).length);
     if (YEARS.some(y => (s.timelines as Record<string, { helped: boolean }>)[y].helped) && !s.inventory.includes('Moonseed')) s.inventory.push('Moonseed');
   }
   if (!nonnegative(s.coins) || !nonnegative(s.crossings) || typeof s.seedPlanted !== 'boolean' ||

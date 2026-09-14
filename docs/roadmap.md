@@ -1,9 +1,9 @@
 # Incremental roadmap
 
 1. Foundation: two-era village, library/tower, input, saves and CI.
-2. Controller: swept capsule physics, ramps/stairs, follow-camera occlusion, animated traveler.
+2. Controller: kinematic sprint/jump and procedural animation implemented; upgrade to physics ramps/stairs and authored character animation next.
 3. Art: modular Blender kit, authored GLBs, animation and restrained spatial audio.
-4. Content: data-defined conversations, quest graph, seeded variation, interaction prompts.
+4. Content: authored branching conversations and five linked quests implemented; seeded variation and more locations next.
 5. Mobile: joystick ergonomics, camera gestures, quality persistence, physical device profiling.
 6. AI: server QuestProvider, schema validation, fallback content, then MCP tools.
 7. Online: authoritative state, accounts and multiplayer design after the single-player loop is stable.
