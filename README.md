@@ -9,12 +9,12 @@ Requires Node.js 22.12+ and npm.
 ```sh
 git clone --branch feat/3d-foundation https://github.com/raduolivas/ultimate-maya-time-threat-gpt.git
 cd ultimate-maya-time-threat-gpt
-npm install
+npm ci
 npm run dev
 ```
 
 Open the URL printed by Vite (normally http://localhost:5173). Keep the terminal open.
-Do not open index.html directly. After a lockfile is committed, use npm ci for clean installs.
+Do not open index.html directly. The committed lockfile fixes the dependency graph; use npm ci for clean installs.
 
 ## First journey
 1. Choose 1200 or 2080.
