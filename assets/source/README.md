@@ -1,0 +1,1 @@
+Editable Blender sources belong here when authored models are introduced. Current models are procedural in src/world/world.ts. Use Git LFS for large binary source assets after configuring it for contributors.
