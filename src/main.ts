@@ -27,7 +27,11 @@ function boot() {
  const rig=new FollowCamera(camera,scene);
  let transition: { room: Room; x: number; z: number; elapsed: number } | null = null;
  const input=new Input(interact,()=>rig.recenter(traveler.mesh.rotation.y));
- ui.onPause=paused=>{input.enabled=started&&!paused&&!transition;input.clear();};
+ ui.onPause=paused=>{
+  const enabled=started&&!paused&&!transition;
+  if(paused||input.enabled!==enabled)input.clear();
+  input.enabled=enabled;
+ };
  function quality(){
   const low=ui.get<HTMLSelectElement>('quality').value==='low';
   const dpr=Math.min(devicePixelRatio||1,low?1:1.5);

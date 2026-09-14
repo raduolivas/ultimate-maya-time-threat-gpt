@@ -31,7 +31,7 @@ export class Hud {
   const container = this.get('dialog-actions'); container.replaceChildren();
   const add=(label:string,run:()=>void)=>{
    const button=document.createElement('button');button.textContent=label;
-   button.onclick=()=>{this.dialog.close();run();};container.append(button);
+   button.onclick=()=>{this.dialog.close();this.onPause(false);run();};container.append(button);
   };
   actions.forEach(a=>add(a.label,a.run));
   if(closeable)add('Return to the world',()=>{});

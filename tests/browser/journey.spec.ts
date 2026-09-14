@@ -16,8 +16,8 @@ async function axisTo(page: Page, axis: 0 | 2, destination: number) {
       return positive ? value >= destination - .2 : value <= destination + .2;
     }, { timeout: 12000, intervals: [50] }).toBe(true);
   } finally {
-    console.log('NAVIGATION', JSON.stringify({axis,destination,position:await page.locator('#game').getAttribute('data-position'),camera:await page.locator('#game').getAttribute('data-camera'),motion:await page.locator('#game').getAttribute('data-motion')}));
     await page.keyboard.up(key);
+    console.log('NAVIGATION', JSON.stringify({axis,destination,position:await page.locator('#game').getAttribute('data-position'),camera:await page.locator('#game').getAttribute('data-camera'),motion:await page.locator('#game').getAttribute('data-motion')}));
   }
   await expect(page.locator('#game')).toHaveAttribute('data-motion', 'idle');
 }
