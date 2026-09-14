@@ -1,0 +1,20 @@
+:root{color-scheme:dark;font-family:system-ui,sans-serif;color:#efe5d2;background:#0e1924}
+*{box-sizing:border-box}body{margin:0;overflow:hidden}canvas{display:block;width:100vw;height:100dvh;outline:none;touch-action:none}
+header{position:fixed;top:26px;left:30px;pointer-events:none}header span,section span,dialog>span{font-size:10px;letter-spacing:3px;color:#d7b983}
+h1{font:29px Georgia,serif;letter-spacing:4px;margin:9px 0}header small{color:#a9b7bd;font-size:11px}
+#status,#objective,nav,#prompt{position:fixed;background:#101b27e8;border:1px solid #ddbd8233;border-radius:10px;backdrop-filter:blur(10px)}
+#status{right:25px;top:28px;padding:15px 20px;color:#e4c99f;font-size:13px}
+#objective{left:30px;top:132px;width:225px;padding:20px;pointer-events:none}#quest{font-size:13px;line-height:1.7;color:#c0cbd1}
+#location{position:fixed;top:85px;right:27px;color:#b6c8cc;font:17px Georgia;pointer-events:none}
+nav{bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:6px;padding:8px;align-items:center;white-space:nowrap}
+button,select{border:1px solid #c7ad784f;border-radius:6px;background:#283744;color:#eee3d1;padding:11px 14px;cursor:pointer;font:inherit}
+button:hover{background:#3b4c58;border-color:#d7b983}button:focus-visible,select:focus-visible{outline:2px solid #f3d49d;outline-offset:3px}
+nav label{font-size:11px;color:#aebfc4;padding:0 4px}select{padding:9px;font-size:11px}
+#prompt{bottom:99px;left:50%;transform:translateX(-50%);padding:11px 18px;font-size:12px;white-space:nowrap;pointer-events:none}
+#notice{position:fixed;top:20px;left:50%;transform:translateX(-50%);max-width:80vw;padding:12px 20px;background:#dfbf89;color:#17232b;border-radius:8px;opacity:0;pointer-events:none;transition:opacity .18s}
+#notice.visible{opacity:1}dialog{width:min(530px,90vw);max-height:85dvh;overflow:auto;background:#13212e;color:#f1e7d6;border:1px solid #d7b98366;border-radius:14px;padding:30px}
+dialog::backdrop{background:#060d18aa;backdrop-filter:blur(5px)}h2{font:30px Georgia}dialog p{white-space:pre-line;line-height:1.8;color:#bdccd3}
+#dialog-actions{display:grid;gap:8px;margin-top:23px}#dialog-actions button:first-child{background:#d7b983;color:#17222a}
+.touch{display:none;position:fixed;bottom:100px;left:18px;text-align:center}.touch button{min-width:44px;min-height:44px;touch-action:none}
+@media(pointer:coarse){.touch{display:block}#prompt{bottom:245px}}
+@media(max-width:700px){header{top:18px;left:15px}h1{font-size:21px}#status{top:103px;right:12px;padding:10px;font-size:10px}#location{top:145px;right:12px;font-size:13px}#objective{top:105px;left:12px;width:170px;padding:13px}#quest{font-size:11px}nav{max-width:98vw;gap:3px;padding:5px;flex-wrap:wrap;justify-content:center}nav button{font-size:11px;padding:9px}nav label{font-size:10px}#prompt{font-size:10px;max-width:95vw;white-space:normal;text-align:center}}
