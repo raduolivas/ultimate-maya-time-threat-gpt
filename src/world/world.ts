@@ -1,14 +1,18 @@
-import { Color3, Mesh, MeshBuilder, Scene, StandardMaterial, Vector3 } from '@babylonjs/core';
+import { Color3, Mesh, MeshBuilder, Scene, StandardMaterial, TransformNode, Vector3 } from '@babylonjs/core';
 import { ERAS, type Era } from '../content/eras';
 export type Room = 'village' | 'library' | 'tower';
-export type TargetId = 'library' | 'tower' | 'exit' | 'study' | 'help' | 'travel';
+export type TargetId = 'library' | 'tower' | 'exit' | 'study' | 'help' | 'travel' | 'plant' | 'echo' | 'collect:0' | 'collect:1' | 'collect:2';
 export interface Target { id: TargetId; label: string; position: Vector3 }
+export interface WorldProgress { wellRepaired: boolean; planted: boolean; collected: number[] }
 export class World {
  room: Room = 'village';
  targets: Target[] = [];
  private meshes: Mesh[] = [];
  private materials: StandardMaterial[] = [];
  private ring: Mesh | null = null;
+ private doors = new Map<TargetId, TransformNode>();
+ private opening: TargetId | null = null;
+ private hinges: TransformNode[] = [];
  constructor(private scene: Scene) {}
  private mat(name: string, color: string, glow = false) {
   const m = new StandardMaterial(name, this.scene);
@@ -28,7 +32,7 @@ export class World {
   const mesh = MeshBuilder.CreateSphere(name, { diameter: size, segments: 8 }, this.scene);
   mesh.position.set(x,y,z); mesh.material = material; this.meshes.push(mesh); return mesh;
  }
- build(era: Era, room: Room = 'village') {
+ build(era: Era, room: Room = 'village', progress: WorldProgress = { wellRepaired: false, planted: false, collected: [] }) {
   this.dispose(); this.room = room;
   const palette = ERAS[era], future = era === 2080;
   const grass = this.mat('ground', palette.ground), stone = this.mat('stone','#687675');
@@ -54,7 +58,10 @@ export class World {
     }
     this.box('reading-table',0,.8,2,3,1.6,1.5,wood);
     this.box('manuscript',0,1.65,2,.9,.1,.6,glow,false);
-    this.target('study','Read the manuscript',0,.5);
+    this.target('study','Speak with Elian / read',0,.5);
+    const robe=this.mat('archivist-robe','#747ea0'),skin=this.mat('archivist-skin','#d7b391');
+    this.box('Elian',-2.6,.65,2,.6,1.3,.5,robe,false);
+    this.sphere('Elian-head',-2.6,1.55,2,.45,skin);
    } else {
     this.box('gate-left',-2,2,3,.6,4,.6,stone);
     this.box('gate-right',2,2,3,.6,4,.6,stone);
@@ -80,19 +87,39 @@ export class World {
     for(const dx of [-2.7,0,2.7])this.box('timber-beam',x+dx,height/2,z-2.54,.16,height,.1,wood,false);
    }
    for(const dx of [-1.7,1.7])this.box('window',x+dx,2.5,z-2.56,1,1.3,.1,glow,false);
-   this.box('door',x,1.1,z-2.57,1.2,2.2,.1,wood,false);
+   const hinge=new TransformNode(title+'-door-hinge',this.scene);
+   hinge.position.set(x-.6,0,z-2.6);
+   const door=this.box('door',.6,1.1,0,1.2,2.2,.1,wood,false);door.parent=hinge;
+   const id:TargetId=title==='library'?'library':title==='clocktower'?'tower':'exit';
+   this.hinges.push(hinge);if(id!=='exit')this.doors.set(id,hinge);
   };
   house(-10,8,'library'); this.target('library','Enter the library',-10,4.5);
   house(10,8,'clocktower',true); this.target('tower','Enter the clocktower',10,4.5);
   house(-10,-10,'workshop'); house(10,-10,'tavern');
   const water=this.mat('water',future?'#7aded4':'#719ca7',true);
   this.box('well',-2.8,.5,0,2,1,2,stone);
-  this.box('water',-2.8,1.03,0,1.4,.04,1.4,water,false);
+  if(progress.wellRepaired)this.box('water',-2.8,1.03,0,1.4,.04,1.4,water,false);
   const cloak=this.mat('villager','#b28b74'),skin=this.mat('skin','#d7b391');
   const npc=MeshBuilder.CreateCylinder('villager',{height:1.3,diameterTop:.4,diameterBottom:.8},this.scene);
   npc.position.set(-5,.65,-1);npc.material=cloak;this.meshes.push(npc);
   this.sphere('head',-5,1.55,-1,.48,skin);
   this.target('help','Speak with '+palette.npc,-5,-2);
+  const cratePositions=[[-7,-5],[6,-5],[6,1]];
+  if(!progress.wellRepaired)cratePositions.forEach(([x,z],id)=>{
+   if(progress.collected.includes(id))return;
+   this.box('supply-crate',x,.35,z,.7,.7,.7,wood);
+   this.box('crate-mark',x,.73,z,.3,.05,.3,glow,false);
+   this.target(('collect:'+id) as TargetId,'Collect supply crate',x,z-.7);
+  });
+  this.box('garden-patch',5,.035,-2,2,.07,2,wood,false);
+  if(progress.planted){
+   const scale=future?1:.22;
+   this.box('moon-tree-trunk',5,2*scale,-2,.55*scale,4*scale,.55*scale,wood);
+   const crown=this.sphere('moon-tree-crown',5,5*scale,-2,4*scale,leaves);
+   crown.metadata={cameraOccluder:true};
+   if(future)this.box('inscription',5,.4,-3,.8,.8,.3,stone);
+  }
+  this.target(future?'echo':'plant',future?'Read the garden inscription':'Plant the Moonseed',5,-3.5);
   for(let i=0;i<14;i++){
    const angle=i/14*Math.PI*2,x=Math.cos(angle)*18,z=Math.sin(angle)*18;
    this.box('trunk',x,1,z,.45,2,.45,wood);
@@ -106,6 +133,11 @@ export class World {
  nearest(position: Vector3) {
   return this.targets.map(t=>({...t,distance:Math.hypot(t.position.x-position.x,t.position.z-position.z)})).sort((a,b)=>a.distance-b.distance)[0];
  }
- animate(time:number){if(this.ring)this.ring.scaling.setAll(1+Math.sin(time*2)*.035);}
- dispose(){this.ring=null;this.meshes.forEach(m=>m.dispose());this.materials.forEach(m=>m.dispose());this.meshes=[];this.materials=[];this.targets=[];}
+ openDoor(id: TargetId){this.opening=id;}
+ animate(time:number,dt=.016){
+  if(this.ring)this.ring.scaling.setAll(1+Math.sin(time*2)*.035);
+  const hinge=this.opening?this.doors.get(this.opening):undefined;
+  if(hinge)hinge.rotation.y=Math.max(-1.6,hinge.rotation.y-dt*4);
+ }
+ dispose(){this.doors.clear();this.opening=null;this.hinges.forEach(h=>h.dispose());this.hinges=[];this.ring=null;this.meshes.forEach(m=>m.dispose());this.materials.forEach(m=>m.dispose());this.meshes=[];this.materials=[];this.targets=[];}
 }

@@ -18,3 +18,8 @@ dialog::backdrop{background:#060d18aa;backdrop-filter:blur(5px)}h2{font:30px Geo
 .touch{display:none;position:fixed;bottom:100px;left:18px;text-align:center}.touch button{min-width:44px;min-height:44px;touch-action:none}
 @media(pointer:coarse){.touch{display:block}#prompt{bottom:245px}}
 @media(max-width:700px){header{top:18px;left:15px}h1{font-size:21px}#status{top:103px;right:12px;padding:10px;font-size:10px}#location{top:145px;right:12px;font-size:13px}#objective{top:105px;left:12px;width:170px;padding:13px}#quest{font-size:11px}nav{max-width:98vw;gap:3px;padding:5px;flex-wrap:wrap;justify-content:center}nav button{font-size:11px;padding:9px}nav label{font-size:10px}#prompt{font-size:10px;max-width:95vw;white-space:normal;text-align:center}}
+
+#app::after{content:'';position:fixed;inset:0;background:#0e1924;opacity:0;pointer-events:none;transition:opacity .18s}
+#app.transitioning::after{opacity:.82}
+@media(max-width:700px){nav{width:96vw}#status{max-width:48vw;line-height:1.5}#prompt{bottom:120px}}
+@media(pointer:coarse){#prompt{bottom:310px}.touch{bottom:135px}}

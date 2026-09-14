@@ -1,6 +1,7 @@
 import { ArcRotateCamera, Color3, Color4, DirectionalLight, Engine, HemisphericLight, Scene, Vector3 } from '@babylonjs/core';
-import { ERAS, type Era } from './content/eras';
-import { applyCommand, canTravel, createGame, type Command } from './game/state';
+import { conversation } from './content/dialogue';
+import { type Era } from './content/eras';
+import { applyCommand, canTravel, createGame, quests, type Command } from './game/state';
 import { load, save } from './platform/save';
 import { FollowCamera } from './player/camera';
 import { Input } from './player/input';
@@ -24,8 +25,9 @@ function boot() {
  const traveler=new Traveler(scene),world=new World(scene);
  let state=createGame(),started=false,time=0,accumulator=0;
  const rig=new FollowCamera(camera,scene);
+ let transition: { room: Room; x: number; z: number; elapsed: number } | null = null;
  const input=new Input(interact,()=>rig.recenter(traveler.mesh.rotation.y));
- ui.onPause=paused=>{input.enabled=started&&!paused;input.clear();};
+ ui.onPause=paused=>{input.enabled=started&&!paused&&!transition;input.clear();};
  function quality(){
   const low=ui.get<HTMLSelectElement>('quality').value==='low';
   const dpr=Math.min(devicePixelRatio||1,low?1:1.5);
@@ -39,12 +41,13 @@ function boot() {
   catch{ui.notify('Storage unavailable. Your current session is still active.');}
  }
  function rebuild(room:Room='village',x=0,z=-6){
-  world.build(state.era,room);traveler.spawn(x,z);rig.reset(traveler.mesh.position);refresh();
+  world.build(state.era,room,{wellRepaired:state.timelines[state.era].helped,planted:state.seedPlanted,collected:state.timelines[state.era].collected});traveler.spawn(x,z);rig.reset(traveler.mesh.position);refresh();
  }
  function begin(era:Era){
   state=createGame(era);started=true;rebuild();input.enabled=true;persist();ui.notify('Find the library to the left of the square.');
  }
  function restore(){
+  if(transition)return;
   try{
    const saved=load(localStorage);
    if(!saved){ui.notify('No saved journey found.');if(!started)welcome();return;}
@@ -56,23 +59,44 @@ function boot() {
    'Explore a lantern-lit village at the edge of time. Study, help its people, and discover what crosses with you.\n\nWASD / arrows to walk · drag to orbit · scroll to zoom · E to interact · Shift to sprint · Space to jump · R to recenter. Touch buttons and a gamepad are also supported.\n\nChoose your starting era:',
    [{label:'Begin in 1200 · The Lantern Age',run:()=>begin(1200)},{label:'Begin in 2080 · A Possible Tomorrow',run:()=>begin(2080)},{label:'Continue saved journey',run:restore}],false);
  }
+ function enter(room:Room,x:number,z:number){
+  if(transition)return;
+  transition={room,x,z,elapsed:0};input.enabled=false;input.clear();
+  if(room!=='village')world.openDoor(room);
+ }
+ function talk(node:string){
+  const dialogue=conversation(node,state);
+  ui.show(dialogue.title,dialogue.text,dialogue.choices.map(choice=>({
+   label:choice.label,
+   run:()=>{if(choice.next)talk(choice.next);else if(choice.command)command(choice.command);}
+  })));
+ }
  function command(action:Command){
   const result=applyCommand(state,action);state=result.state;
-  if(action==='travel'&&result.changed)rebuild();
+  if(result.changed){
+   if(action==='travel')enter('village',0,-6);
+   else if(action!=='study'){
+    const position=traveler.mesh.position;
+    rebuild(world.room,position.x,position.z);
+   }
+  }
   refresh();if(result.changed)persist();ui.notify(result.message);
  }
  function interact(){
-  if(!started||ui.dialog.open)return;
+  if(!started||ui.dialog.open||transition)return;
   const target=world.nearest(traveler.mesh.position);if(!target||target.distance>2.2)return;
-  if(target.id==='library'||target.id==='tower'){rebuild(target.id,0,-4);return;}
-  if(target.id==='exit'){const previous=world.room;rebuild('village',previous==='library'?-10:10,3.5);return;}
-  if(target.id==='study'){
-   ui.show('The unexamined shadow','The manuscript invites you to notice the parts of yourself you avoid acknowledging. What might defensiveness be protecting?\n\nThese are fictional, Jung-inspired game mechanics. Rest restores energy; ordinary enjoyment is not penalized.',
-    [{label:'Read and reflect',run:()=>command('study')}]);return;
+  if(target.id==='library'||target.id==='tower'){enter(target.id,0,-4);return;}
+  if(target.id==='exit'){enter('village',world.room==='library'?-10:10,3.5);return;}
+  if(target.id==='study'){talk('archivist');return;}
+  if(target.id==='help'){talk('keeper');return;}
+  if(target.id.startsWith('collect:')){command(target.id as Command);return;}
+  if(target.id==='plant'){
+   ui.show('A gift to tomorrow','Plant a seed in 1200, then discover what it becomes in 2080.',
+    [{label:'Plant the Moonseed',run:()=>command('plant')}]);return;
   }
-  if(target.id==='help'){
-   ui.show(ERAS[state.era].npc+' · Keeper of the well','The village well needs care. Will you offer your time to help restore it?',
-    [{label:'Offer help',run:()=>command('help')}]);return;
+  if(target.id==='echo'){
+   ui.show('What the roots remember',state.seedPlanted?'A tree stands where you once planted a seed. The inscription reads: For those we will never meet.':'The garden is empty. Its story could begin in another century.',
+    [{label:'Read the inscription',run:()=>command('echo')}]);return;
   }
   if(!canTravel(state)){
    ui.show('The gate is still sleeping','A crossing requires 40 XP, one studied manuscript, and 25 temporal energy. Read at the library and help the villager. Return to the manuscript to restore energy.');return;
@@ -80,8 +104,11 @@ function boot() {
   ui.show('Another thread awaits','Cross into '+(state.era===1200?2080:1200)+'? The cost is 25 energy. Your inventory and chronicle remain; each era remembers its own quests.',
    [{label:'Cross the threshold',run:()=>command('travel')}]);
  }
+ ui.get('quests').onclick=()=>{
+  if(started)ui.show('Quest journal',quests(state).map(q=>(q.complete?'✓ ':'○ ')+q.title+'\n'+q.detail+'\nReward: '+q.reward).join('\n\n'));
+ };
  ui.get('interact').onclick=interact;
- ui.get('inventory').onclick=()=>{if(started)ui.show('What you carry',state.inventory.join('\n\n'));};
+ ui.get('inventory').onclick=()=>{if(started)ui.show('What you carry',state.inventory.join('\n\n')+'\n\nGold: '+state.coins+'\nRepair supplies in this era: '+state.timelines[state.era].collected.length+'/3');};
  ui.get('chronicle').onclick=()=>{if(started)ui.show('Your chronicle',state.chronicle.map(e=>e.era+' — '+e.text).join('\n\n'));};
  ui.get('save').onclick=()=>persist(true);ui.get('load').onclick=restore;
  const resize=()=>engine.resize();
@@ -91,13 +118,23 @@ function boot() {
  engine.runRenderLoop(()=>{
   const delta=Math.min(engine.getDeltaTime()/1000,.1);time+=delta;accumulator+=delta;
   const movement=input.sample();
-  while(accumulator>=1/60){if(started&&!ui.dialog.open)traveler.step({...movement,jump:input.consumeJump()},camera,1/60);accumulator-=1/60;}
+  while(accumulator>=1/60){if(started&&!ui.dialog.open&&!transition)traveler.step({...movement,jump:input.consumeJump()},camera,1/60);accumulator-=1/60;}
   rig.update(traveler.mesh.position,delta);
-  world.animate(time);
+  world.animate(time,delta);
+  if(transition){
+   transition.elapsed+=delta;
+   document.querySelector('#app')!.classList.toggle('transitioning',transition.elapsed>.25);
+   if(transition.elapsed>.5){
+    const destination=transition;transition=null;
+    rebuild(destination.room,destination.x,destination.z);
+    document.querySelector('#app')!.classList.remove('transitioning');
+    input.enabled=started&&!ui.dialog.open;
+   }
+  }
   const target=world.nearest(traveler.mesh.position);
   ui.get('prompt').textContent=started&&target&&target.distance<2.2?'E · '+target.label:'WASD · Walk   Shift · Run   Space · Jump   E · Interact   R · Camera';
   scene.render();ui.canvas.dataset.ready='true';
-  if(import.meta.env.DEV){ui.canvas.dataset.position=[traveler.mesh.position.x,traveler.mesh.position.y,traveler.mesh.position.z].join(',');ui.canvas.dataset.motion=traveler.motion;}
+  if(import.meta.env.DEV){ui.canvas.dataset.position=[traveler.mesh.position.x,traveler.mesh.position.y,traveler.mesh.position.z].join(',');ui.canvas.dataset.motion=traveler.motion;ui.canvas.dataset.room=world.room;}
  });
  const cleanup=(event:PageTransitionEvent)=>{
   persist();if(event.persisted)return;

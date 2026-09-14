@@ -5,9 +5,9 @@ describe('the awakening',()=>{
  it('requires learning and service before crossing',()=>{
   let s=createGame();expect(canTravel(s)).toBe(false);
   expect(applyCommand(s,'travel').state).toEqual(s);
-  expect(applyCommand(s,'help').changed).toBe(false);
+  expect(applyCommand(s,'donate').changed).toBe(false);
   s=applyCommand(s,'study').state;expect(s.xp).toBe(20);
-  s=applyCommand(s,'help').state;expect(canTravel(s)).toBe(true);
+  s=applyCommand(s,'donate').state;expect(canTravel(s)).toBe(true);
   const previous=structuredClone(s);
   const next=applyCommand(s,'travel').state;
   expect(s).toEqual(previous);expect(next.era).toBe(2080);expect(next.energy).toBe(s.energy-25);
@@ -18,13 +18,13 @@ describe('the awakening',()=>{
   let s=applyCommand(createGame(),'study').state;
   s=applyCommand(s,'study').state;
   expect(s.xp).toBe(20);expect(s.inventory).toHaveLength(2);
-  s=applyCommand(s,'help').state;
-  expect(applyCommand(s,'help').state.xp).toBe(40);
+  s=applyCommand(s,'donate').state;
+  expect(applyCommand(s,'donate').state.xp).toBe(40);
   for(let i=0;i<20;i++)s=applyCommand(s,'study').state;
   expect(s.energy).toBe(100);
  });
  it('preserves both timelines on returning and blocks depleted energy',()=>{
-  let s=applyCommand(applyCommand(createGame(),'study').state,'help').state;
+  let s=applyCommand(applyCommand(createGame(),'study').state,'donate').state;
   s=applyCommand(s,'travel').state;s=applyCommand(s,'travel').state;
   expect(s.era).toBe(1200);expect(s.timelines[1200].helped).toBe(true);
   expect(s.energy).toBe(10);expect(applyCommand(s,'travel').changed).toBe(false);
@@ -40,7 +40,7 @@ describe('save boundary',()=>{
   save(storage,s);expect(memory.has(SAVE_KEY)).toBe(true);expect(load(storage)).toEqual(s);
  });
  it('rejects corrupt, unsupported, and invalid state',()=>{
-  for(const raw of ['bad','null','{}',JSON.stringify({...createGame(),version:2}),JSON.stringify({...createGame(),energy:-1}),JSON.stringify({...createGame(),era:3000})])
+  for(const raw of ['bad','null','{}',JSON.stringify({...createGame(),version:99}),JSON.stringify({...createGame(),energy:-1}),JSON.stringify({...createGame(),era:3000})])
    expect(()=>decodeSave(raw)).toThrow();
  });
 });
