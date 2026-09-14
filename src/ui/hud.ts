@@ -11,8 +11,8 @@ export class Hud {
    <header><span>THREADS OF TIME</span><h1>ULTIMATE MAYA</h1><small>A life beyond one lifetime</small></header>
    <aside id="status"></aside><section id="objective"><span>THE AWAKENING</span><p id="quest"></p></section>
    <div id="location"></div><div id="prompt"></div>
-   <nav><button id="inventory">Inventory</button><button id="chronicle">Chronicle</button><button id="save">Save</button><button id="load">Load</button><label>Graphics <select id="quality"><option value="low">Low</option><option value="standard" selected>Standard</option></select></label></nav>
-   <div class="touch"><button data-move="w">↑</button><div><button data-move="a">←</button><button id="interact">E</button><button data-move="d">→</button></div><button data-move="s">↓</button></div>
+   <nav><button id="inventory">Inventory</button><button id="chronicle">Chronicle</button><button id="save">Save</button><button id="load">Load</button><button id="recenter">Camera</button><label>Graphics <select id="quality"><option value="low">Low</option><option value="standard" selected>Standard</option></select></label></nav>
+   <div class="touch"><button data-move="w">↑</button><div><button data-move="a">←</button><button id="interact">E</button><button data-move="d">→</button></div><button data-move="s">↓</button><div><button data-move="shift">Run</button><button id="jump">Jump</button></div></div>
    <div id="notice" role="status"></div>
    <dialog id="dialog"><span>ULTIMATE MAYA</span><h2 id="dialog-title"></h2><p id="dialog-body"></p><div id="dialog-actions"></div></dialog>`;
   this.canvas = this.get<HTMLCanvasElement>('game');

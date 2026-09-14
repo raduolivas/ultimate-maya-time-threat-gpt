@@ -19,7 +19,7 @@ export class World {
  private box(name: string, x: number, y: number, z: number, w: number, h: number, d: number, material: StandardMaterial, solid = true) {
   const mesh = MeshBuilder.CreateBox(name, { width: w, height: h, depth: d }, this.scene);
   mesh.position.set(x,y,z); mesh.material = material; mesh.checkCollisions = solid;
-  mesh.receiveShadows = true; this.meshes.push(mesh); return mesh;
+  mesh.metadata = { cameraOccluder: h > 2 }; mesh.receiveShadows = true; this.meshes.push(mesh); return mesh;
  }
  private target(id: TargetId, label: string, x: number, z: number) {
   this.targets.push({ id, label, position: new Vector3(x, 0, z) });
@@ -76,7 +76,7 @@ export class World {
     this.box('light-strip',x,height-.3,z-2.56,5.7,.12,.1,glow,false);
    } else {
     const top=MeshBuilder.CreateCylinder('roof',{height:2.4,diameterTop:0,diameterBottom:9,tessellation:4},this.scene);
-    top.position.set(x,height+1.2,z);top.rotation.y=Math.PI/4;top.scaling.z=.85;top.material=roof;this.meshes.push(top);
+    top.position.set(x,height+1.2,z);top.rotation.y=Math.PI/4;top.scaling.z=.85;top.material=roof;top.metadata={cameraOccluder:true};this.meshes.push(top);
     for(const dx of [-2.7,0,2.7])this.box('timber-beam',x+dx,height/2,z-2.54,.16,height,.1,wood,false);
    }
    for(const dx of [-1.7,1.7])this.box('window',x+dx,2.5,z-2.56,1,1.3,.1,glow,false);

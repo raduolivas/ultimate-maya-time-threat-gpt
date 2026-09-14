@@ -2,6 +2,7 @@ import { ArcRotateCamera, Color3, Color4, DirectionalLight, Engine, HemisphericL
 import { ERAS, type Era } from './content/eras';
 import { applyCommand, canTravel, createGame, type Command } from './game/state';
 import { load, save } from './platform/save';
+import { FollowCamera } from './player/camera';
 import { Input } from './player/input';
 import { Traveler } from './player/traveler';
 import { World, type Room } from './world/world';
@@ -22,7 +23,8 @@ function boot() {
  camera.checkCollisions=true;camera.collisionRadius=new Vector3(.4,.4,.4);camera.panningSensibility=0;
  const traveler=new Traveler(scene),world=new World(scene);
  let state=createGame(),started=false,time=0,accumulator=0;
- const input=new Input(interact);
+ const rig=new FollowCamera(camera,scene);
+ const input=new Input(interact,()=>rig.recenter(traveler.mesh.rotation.y));
  ui.onPause=paused=>{input.enabled=started&&!paused;input.clear();};
  function quality(){
   const low=ui.get<HTMLSelectElement>('quality').value==='low';
@@ -37,7 +39,7 @@ function boot() {
   catch{ui.notify('Storage unavailable. Your current session is still active.');}
  }
  function rebuild(room:Room='village',x=0,z=-6){
-  world.build(state.era,room);traveler.spawn(x,z);camera.setTarget(traveler.mesh.position.add(new Vector3(0,.5,0)));refresh();
+  world.build(state.era,room);traveler.spawn(x,z);rig.reset(traveler.mesh.position);refresh();
  }
  function begin(era:Era){
   state=createGame(era);started=true;rebuild();input.enabled=true;persist();ui.notify('Find the library to the left of the square.');
@@ -51,7 +53,7 @@ function boot() {
  }
  function welcome(){
   ui.show('Every life is a doorway.',
-   'Explore a lantern-lit village at the edge of time. Study, help its people, and discover what crosses with you.\n\nWASD / arrows to walk · drag to orbit · scroll to zoom · E to interact. Touch buttons and a gamepad are also supported.\n\nChoose your starting era:',
+   'Explore a lantern-lit village at the edge of time. Study, help its people, and discover what crosses with you.\n\nWASD / arrows to walk · drag to orbit · scroll to zoom · E to interact · Shift to sprint · Space to jump · R to recenter. Touch buttons and a gamepad are also supported.\n\nChoose your starting era:',
    [{label:'Begin in 1200 · The Lantern Age',run:()=>begin(1200)},{label:'Begin in 2080 · A Possible Tomorrow',run:()=>begin(2080)},{label:'Continue saved journey',run:restore}],false);
  }
  function command(action:Command){
@@ -88,17 +90,18 @@ function boot() {
  rebuild();welcome();
  engine.runRenderLoop(()=>{
   const delta=Math.min(engine.getDeltaTime()/1000,.1);time+=delta;accumulator+=delta;
-  const movement=input.read();
-  while(accumulator>=1/60){if(started&&!ui.dialog.open)traveler.step(movement,camera,1/60);accumulator-=1/60;}
-  camera.setTarget(Vector3.Lerp(camera.target,traveler.mesh.position.add(new Vector3(0,.5,0)),1-Math.exp(-10*delta)));
+  const movement=input.sample();
+  while(accumulator>=1/60){if(started&&!ui.dialog.open)traveler.step({...movement,jump:input.consumeJump()},camera,1/60);accumulator-=1/60;}
+  rig.update(traveler.mesh.position,delta);
   world.animate(time);
   const target=world.nearest(traveler.mesh.position);
-  ui.get('prompt').textContent=started&&target&&target.distance<2.2?'E · '+target.label:'WASD · Walk    Drag · Orbit    Scroll · Zoom';
+  ui.get('prompt').textContent=started&&target&&target.distance<2.2?'E · '+target.label:'WASD · Walk   Shift · Run   Space · Jump   E · Interact   R · Camera';
   scene.render();ui.canvas.dataset.ready='true';
+  if(import.meta.env.DEV){ui.canvas.dataset.position=[traveler.mesh.position.x,traveler.mesh.position.y,traveler.mesh.position.z].join(',');ui.canvas.dataset.motion=traveler.motion;}
  });
  const cleanup=(event:PageTransitionEvent)=>{
   persist();if(event.persisted)return;
-  engine.stopRenderLoop();input.dispose();world.dispose();traveler.dispose();scene.dispose();engine.dispose();
+  engine.stopRenderLoop();input.dispose();rig.dispose();world.dispose();traveler.dispose();scene.dispose();engine.dispose();
   window.removeEventListener('resize',resize);document.removeEventListener('visibilitychange',hidden);ui.dispose();
  };
  window.addEventListener('pagehide',cleanup,{once:true});
