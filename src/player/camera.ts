@@ -5,7 +5,7 @@ export class FollowCamera {
   constructor(readonly camera: ArcRotateCamera, private scene: Scene) {}
   reset(position: Vector3) {
     this.restore();
-    this.camera.setTarget(position.add(new Vector3(0, .45, 0)));
+    this.camera.setTarget(position.add(new Vector3(0, .45, 0)), false, false, true);
     this.camera.inertialAlphaOffset = 0; this.camera.inertialBetaOffset = 0;
     this.camera.inertialRadiusOffset = 0;
   }
@@ -16,7 +16,8 @@ export class FollowCamera {
   }
   update(position: Vector3, dt: number) {
     const target = position.add(new Vector3(0, .45, 0));
-    this.camera.setTarget(Vector3.Lerp(this.camera.target, target, 1 - Math.exp(-12 * dt)));
+    // Preserve orbit angles/radius: setTarget otherwise rotates around a fixed world position.
+    this.camera.setTarget(Vector3.Lerp(this.camera.target, target, 1 - Math.exp(-12 * dt)), false, false, true);
     this.restore();
     const direction = target.subtract(this.camera.position), distance = direction.length();
     if (distance < .1) return;
